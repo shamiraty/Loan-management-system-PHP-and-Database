@@ -52,10 +52,7 @@ message varchar(100),
 foreign key(NationalID)references Customers(NationalID) on update cascade on delete cascade
 )
 DELIMITER $$
-create trigger compute
- after insert on Installments
- for each row 
- begin
+CREATE TRIGGER `compute` AFTER INSERT ON `installments` FOR EACH ROW begin
  set @ActualDebt=
 (
   select ActualDebt
@@ -68,10 +65,10 @@ select sum(InstalledAmount)
 from Installments where 
 National_ID=new.National_ID
 );
-if @ActualDebt=@totalInstallment or @totalInstallment>=@ActualDebt
+if @totalInstallment>@ActualDebt
 then
 SIGNAL SQLSTATE '45000'
-SET MESSAGE_TEXT = 'complited';
+SET MESSAGE_TEXT = 'The user has already Complited the loan';
 end if;
 update Customers set RemainAmount=@ActualDebt-@totalInstallment 
 where Customers.NationalID=new.National_ID;
@@ -81,4 +78,3 @@ where Customers.NationalID=new.National_ID;
  where NationalID=new.National_ID;
  end if;
  end $$
-
